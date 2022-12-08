@@ -39,47 +39,51 @@ priority_letter_list = []
 for line in lines:
     # print(line)
 
-    # Get the length of the line (minus the newline character)
-    line_length = len(line) - 1
+    # Get the length of the line
+    line_length = len(line)
+    if line[-1] == "\n":
+        # Remove the newline character if it exists at the end of the line
+        line_length -= 1
     compartment_size = int(line_length / 2)
 
-    # Get the compartments for each line
+    # Get the compartments for a line
     compartment_1 = line[:compartment_size]
     compartment_2 = line[compartment_size:]
 
     common_letter = ""
     for i in compartment_1:
         if i in compartment_2 and not i in common_letter:
+            # Add the common letter if it isn't already in the list
             common_letter += i
 
+    # Make sure that there's only 1 common letter between compartments
     if len(common_letter) > 1:
-        print(line)
-        print(compartment_1)
-        print(compartment_2)
-        print(common_letter)
-        raise Exception("There should only be one letter in common")
+        raise Exception(
+            "There should only be one letter in common between compartment 1 = [%s] and compartment 2 = [%s]" % (compartment_1, compartment_2))
 
     priority_letter_list.append(common_letter)
-
-    # print(compartment_1)
-    # print(compartment_2)
-    # print(common_letter)
-    # print("")
 
 priority_letter_value_list = []
 
 for letter in priority_letter_list:
     value = 0
+
+    # Try generate the value for a lower case letter
     try:
         value = priority_letter_values[letter]
+    # If there is no value returned, the letter must be uppercase
     except:
         if priority_letter_values[letter.lower()] > 0:
+            # Adjust the value of the upper case letters by adding 26
             value = priority_letter_values[letter.lower()] + 26
         else:
+            # Stop executing if there is a letter without a value
             raise Exception(
                 "Could not generate value for letter [%s]" % letter)
+
     priority_letter_value_list.append(value)
 
+# Sum the list of priority letters
 priority_letter_sum = sum(priority_letter_value_list)
 
 print(
