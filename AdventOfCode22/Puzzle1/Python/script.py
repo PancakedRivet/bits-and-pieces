@@ -1,7 +1,11 @@
 # Puzzle 1: https://adventofcode.com/2022/day/1
 
+import os.path
+
+input_file = os.path.dirname(__file__) + '/../input.txt'
+
 # Open the input file
-with open('input.txt') as file:
+with open(input_file)as file:
     lines = file.readlines()
 
 # Prepare the running tally for calorie and highest calories counted so far
@@ -27,7 +31,7 @@ print('Most caloric elf is carrying [%s] calories.' % highest_calorie_elf)
 # Puzzle 1: Part 2: https://adventofcode.com/2022/day/1#part2
 
 # Open the input file
-with open('input.txt') as file:
+with open(input_file) as file:
     lines = file.readlines()
 
 # Prepare the running tally for calorie and highest calories counted so far
