@@ -19,7 +19,7 @@ with open('input.txt') as file:
  1   2   3   4   5   6   7   8   9 
 """
 
-INITIAL_CREATE_STACKS = [
+INITIAL_CRATE_STACKS = [
     ["D", "L", "V", "T", "M", "H", "F"],  # stack 1
     ["H", "Q", "G", "J", "C", "T", "N", "P"],  # stack 2
     ["R", "S", "D", "M", "P", "H"],  # stack 3
@@ -32,7 +32,7 @@ INITIAL_CREATE_STACKS = [
 ]
 
 # Perform a deepcopy so as to not change the starting position
-crate_stacks = copy.deepcopy(INITIAL_CREATE_STACKS)
+crate_stacks = copy.deepcopy(INITIAL_CRATE_STACKS)
 
 for line in lines:
     # Remove the newline character from the line
@@ -64,7 +64,7 @@ print('Message for top crate of each stack = [%s].' % result)
 # Puzzle 5: Part 2: https://adventofcode.com/2022/day/5#part2
 
 # Perform a deepcopy so as to not change the starting position
-crate_stacks = copy.deepcopy(INITIAL_CREATE_STACKS)
+crate_stacks = copy.deepcopy(INITIAL_CRATE_STACKS)
 
 for line in lines:
     # Remove the newline character from the line
