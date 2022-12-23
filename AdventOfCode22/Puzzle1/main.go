@@ -17,7 +17,7 @@ func check(e error) {
 func main() {
 
 	// Open the input file
-	readFile, err := os.Open("../input.txt")
+	readFile, err := os.Open("./input.txt")
 	check(err)
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)

@@ -2,7 +2,7 @@
 
 import os.path
 
-input_file = os.path.dirname(__file__) + '/../input.txt'
+input_file = os.path.dirname(__file__) + '/input.txt'
 
 # Open the input file
 with open(input_file)as file:
