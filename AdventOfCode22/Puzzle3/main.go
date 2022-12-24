@@ -53,10 +53,14 @@ func main() {
 
 	var currentLine string
 	var currentLineLength, compartmentSize int
-	var compartment1, compartment2 string
+	var compartments [2]string
 	var commonLetter string = ""
 	var priorityLetterList []string
 	var letterValue int
+
+	var elfLetters []string
+	var badeLetterList []string
+	lineNumber := 1
 
 	for fileScanner.Scan() {
 		currentLine = fileScanner.Text()
@@ -65,41 +69,39 @@ func main() {
 		compartmentSize = int(currentLineLength / 2)
 
 		// Get the compartments for a line
-		compartment1 = currentLine[:compartmentSize]
-		compartment2 = currentLine[compartmentSize:]
+		compartments[0] = currentLine[:compartmentSize]
+		compartments[1] = currentLine[compartmentSize:]
 
-		// Reset common letters to none on each loop
-		commonLetter = ""
-		for _, letter := range compartment1 {
-			// string(letter) needed as letter is of type "rune"
-			stringLetter := string(letter)
-			if strings.Contains(compartment1, stringLetter) && strings.Contains(compartment2, stringLetter) && !strings.Contains(commonLetter, stringLetter) {
-				commonLetter += string(letter)
-			}
-		}
-
-		// Sanity check to make sure that there is only 1 common letter per loop
-		if len(commonLetter) > 1 {
-			err := fmt.Errorf("Number of common letters is > 1: %s", commonLetter)
-			check(err)
-		}
+		commonLetter = findCommonLetter(compartments[:])
 
 		// Save the common letter on each loop
 		priorityLetterList = append(priorityLetterList, commonLetter)
 
-	}
+		// Part 2:
+		// Append the current line to an array (representing an elf)
+		elfLetters = append(elfLetters, currentLine)
 
-	// Sum the value of the common letters using the value map above
-	letterValue = sumCommonLetters(priorityLetterList)
+		if lineNumber % 3 == 0 {
+			commonLetter = findCommonLetter(elfLetters[:])
+			badeLetterList = append(badeLetterList, commonLetter)
+			elfLetters = nil
+		}
+
+		lineNumber++
+	}
 
 	// Close the input file
 	readFile.Close()
 
+	// Sum the value of the common letters using the value map above
+	letterValue = sumCommonLetters(priorityLetterList)
 	// Puzzle 3: Part 1: https://adventofcode.com/2022/day/3
 	fmt.Printf("Total value of priority letters = [%d].\n", letterValue)
 
+	// Sum the value of the common letters using the value map above
+	letterValue = sumCommonLetters(badeLetterList)
 	// Puzzle 3: Part 2: https://adventofcode.com/2022/day/3#part2
-	// fmt.Printf("Expected score from the *corrected* strategy guide = [%d] points.\n", correctedTotalPointsWon)
+	fmt.Printf("Total value of badge letters = [%d].\n", letterValue)
 }
 
 func sumCommonLetters( letters []string) int {
@@ -125,4 +127,46 @@ func IsUpper(s string) bool {
         }
     }
     return true
+}
+
+func findCommonLetter(stringList []string) string {
+	commonLetter, testedLetters := "", ""
+	isCommonLetter := true
+	listSize := len(stringList)
+
+	for _, letter := range stringList[0] {
+        // string(letter) needed as letter is of type "rune"
+		stringLetter := string(letter)
+		// Reset isCommonLetter to true for each new letter tested
+		isCommonLetter = true
+
+		// Short circuit evaluation if the letter has been tested
+		if strings.Contains(commonLetter, stringLetter) || strings.Contains(testedLetters, stringLetter) {
+			continue
+		}
+
+		// Test all other elements in the list to see if it contains the letter
+		for idx := 1; idx < listSize; idx ++ {
+			if !strings.Contains(stringList[idx], stringLetter) {
+				isCommonLetter = false
+				break
+			}
+		}
+
+		// Add the tested letter to a list so it's not tested again
+		testedLetters += stringLetter
+
+		if isCommonLetter {
+			// If the common letter is found, save it
+			commonLetter += stringLetter
+		}
+	}
+
+	// Sanity check to make sure that there is only 1 common letter per loop
+	if len(commonLetter) != 1 {
+		err := fmt.Errorf("Number of common letters is not 1: letters = [%s]", commonLetter)
+		check(err)
+	}
+
+	return commonLetter
 }
