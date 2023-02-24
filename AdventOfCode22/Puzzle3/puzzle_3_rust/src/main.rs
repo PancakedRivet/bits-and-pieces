@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::fs;
 
 static ASCII_LOWER: [char; 26] = [
@@ -16,16 +15,44 @@ fn main() {
     let file_path = r"D:\Git\bits-and-pieces\AdventOfCode22\Puzzle3\input.txt";
     let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
 
-    let letter_priority_value: i32 = 0;
+    let mut letter_priority_value: usize = 0;
+
+    let mut common_letters = Vec::new();
 
     for line in contents.lines() {
         let compartment_size: usize = line.len() / 2;
         let (compartment_1, compartment_2) = line.split_at(compartment_size);
 
-        let set: HashSet<char> = compartment_1.chars().collect();
-
-        //TODO: Convert this from a bool to a character
-        let common_letter = compartment_2.chars().any(|c| set.contains(&c));
-        println!("common_letter: [{}]", common_letter);
+        // For each line, find the common letter
+        'outer: for compartment_1_char in compartment_1.chars() {
+            for compartment_2_char in compartment_2.chars() {
+                if compartment_1_char == compartment_2_char {
+                    common_letters.push(compartment_1_char);
+                    // println!("common_letter: [{}]", compartment_1_char);
+                    break 'outer;
+                }
+            }
+        }
     }
+
+    // With the letters collected, tally up their values.
+    let mut index;
+    for common_letter in common_letters {
+        if common_letter.is_uppercase() {
+            index = ASCII_UPPER
+                .iter()
+                .position(|&r| r == common_letter)
+                .unwrap()
+                + 26
+                + 1;
+        } else {
+            index = ASCII_LOWER
+                .iter()
+                .position(|&r| r == common_letter)
+                .unwrap()
+                + 1;
+        }
+        letter_priority_value += index;
+    }
+    println!("letter_priority_value: [{}]", letter_priority_value);
 }
