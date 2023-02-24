@@ -1,15 +1,5 @@
 use std::fs;
 
-static ASCII_LOWER: [char; 26] = [
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-    't', 'u', 'v', 'w', 'x', 'y', 'z',
-];
-
-static ASCII_UPPER: [char; 26] = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
-    'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-];
-
 fn main() {
     // Open the input file
     let file_path = r"D:\Git\bits-and-pieces\AdventOfCode22\Puzzle3\input.txt";
@@ -68,23 +58,14 @@ fn main() {
     );
 }
 
-fn calculate_priority_values(common_letters: Vec<char>) -> usize {
-    let mut letter_priority_value: usize = 0;
-    let mut index: usize;
+fn calculate_priority_values(common_letters: Vec<char>) -> u32 {
+    let mut letter_priority_value: u32 = 0;
+    let mut index: u32 = 0;
     for common_letter in common_letters {
-        if common_letter.is_uppercase() {
-            index = ASCII_UPPER
-                .iter()
-                .position(|&r| r == common_letter)
-                .unwrap()
-                + 26 // Accounting for the lower case letters being 1-26
-                + 1; // Accounting for aray indexing starting at 0
-        } else {
-            index = ASCII_LOWER
-                .iter()
-                .position(|&r| r == common_letter)
-                .unwrap()
-                + 1;
+        match common_letter {
+            'a'..='z' => index = (common_letter as u32) - 97 + 1, // 'a' = ASCII 97, 'a' = puzzle code 1
+            'A'..='Z' => index = (common_letter as u32) - 65 + 27, // 'A' = ASCII 65, 'a' = puzzle code 27
+            _ => println!("common_letter = [{common_letter}] not matched!"),
         }
         letter_priority_value += index;
     }
