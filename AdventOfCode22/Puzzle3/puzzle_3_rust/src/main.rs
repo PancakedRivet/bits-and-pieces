@@ -46,14 +46,14 @@ fn main() {
     // Puzzle 3: Part 1: https://adventofcode.com/2022/day/3
     let letter_priority_value_part_1 = calculate_priority_values(common_letters_part_1);
     println!(
-        "letter_priority_value_part_1: [{:?}]",
+        "Part 1: Summing item type letter priority {:?}",
         letter_priority_value_part_1
     );
 
     // Puzzle 3: Part 2: https://adventofcode.com/2022/day/3#part2
     let letter_priority_value_part_2 = calculate_priority_values(common_letters_part_2);
     println!(
-        "letter_priority_value_part_2: [{:?}]",
+        "Part 2: Summing item type letter priority {:?}",
         letter_priority_value_part_2
     );
 }
