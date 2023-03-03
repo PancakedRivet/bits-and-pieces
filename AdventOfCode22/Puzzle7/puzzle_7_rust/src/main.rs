@@ -9,51 +9,63 @@ fn main() {
     let mut current_dir_path: Vec<String> = Vec::new();
     let mut dir_sizes: HashMap<String, i32> = HashMap::new();
 
+    static HOME_FOLDER: &str = "/home"; // Easier than just "/" in the path
+
     for line in contents.lines() {
         let line_split = line.split_whitespace();
         let vec = line_split.collect::<Vec<&str>>();
         let command_1: String = vec[0].parse::<String>().unwrap();
         let command_2: String = vec[1].parse::<String>().unwrap();
 
-        // println!("{line}");
         match (command_1.as_str(), command_2.as_str()) {
             ("$", "cd") => {
-                let new_dir: String = vec[2].parse::<String>().unwrap();
+                let mut new_dir: String = vec[2].parse::<String>().unwrap();
                 if new_dir == ".." {
                     current_dir_path.pop();
                 } else {
+                    if new_dir == "/" {
+                        new_dir = HOME_FOLDER.to_string();
+                    } else {
+                        new_dir = current_dir_path.last().unwrap().to_owned() + "/" + &new_dir;
+                    }
                     current_dir_path.push(new_dir.clone());
                     if !dir_sizes.contains_key(&new_dir) {
-                        dir_sizes.insert(new_dir, 0);
+                        dir_sizes.insert(new_dir.clone(), 0);
                     }
-                    
                 }
-                // println!("Current: {:?}", &current_dir_path);
             },
             ("$", "ls") | ("dir", _) => (), // We don't care about when these commads are used
             _ => {
                 // Only remaining match arm is where a file size is listed
-                // println!("Before: {:?}", &dir_sizes);
                 let file_size = command_1.parse::<i32>().unwrap();
-                for dir in &current_dir_path {
-                    dir_sizes.entry(dir.to_string()).and_modify(|size| *size += file_size);
-                    // println!("Updating [{dir}] with [{file_size}]")
+                for i in 0..current_dir_path.len() {
+                    dir_sizes.entry(current_dir_path[i].to_string()).and_modify(|size| *size += file_size);
                 }
-                // println!("After: {:?}", &dir_sizes);
             }
         };
-        // println!();
     };
 
-    //println!("{:?}", &dir_sizes);
-    let mut dir_sum = 0;
-    for (_dir, size) in &dir_sizes {
+    let mut dir_sum: i32 = 0;
+
+    let space_available: i32 = 70000000;
+    let space_required: i32 = 30000000;
+    let space_used: &i32 = dir_sizes.get(HOME_FOLDER).unwrap();
+    let free_space: i32 = space_available - space_used;
+    let mut directory_size_to_delete: &i32 = &space_available;
+
+    for (_, size) in &dir_sizes {
+        // Calculation for Part 1
         if *size <= 100000 {
             dir_sum += size;
-            //println!("dir: [{dir}], size: [{size}], total size: [{dir_sum}]")
+        };
+        // Calculation for Part 2
+        if free_space + size >= space_required {
+            if size < &directory_size_to_delete {
+                directory_size_to_delete = size;
+            }
         }
-    }  
+    };
 
-    println!("Part 1: total size of directories < 100000 = [{dir_sum}]");
-
+    println!("Part 1: Total size of directories < 100000 = [{dir_sum}]");
+    println!("Part 2: Size of directory to delete = [{directory_size_to_delete}]");
 }
