@@ -1,10 +1,11 @@
 use std::fs;
 use std::collections::HashMap;
+use std::str::SplitWhitespace;
 
 fn main() {
     // Open the input file
-    let file_path = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle7/input.txt";
-    let contents = fs::read_to_string(file_path).expect("Should have been able to read the file");
+    let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle7/input.txt";
+    let contents: String = fs::read_to_string(file_path).expect("Should have been able to read the file");
 
     let mut current_dir_path: Vec<String> = Vec::new();
     let mut dir_sizes: HashMap<String, i32> = HashMap::new();
@@ -12,8 +13,8 @@ fn main() {
     static HOME_FOLDER: &str = "/home"; // Easier than just "/" in the path
 
     for line in contents.lines() {
-        let line_split = line.split_whitespace();
-        let vec = line_split.collect::<Vec<&str>>();
+        let line_split: SplitWhitespace = line.split_whitespace();
+        let vec: Vec<&str> = line_split.collect::<Vec<&str>>();
         let command_1: String = vec[0].parse::<String>().unwrap();
         let command_2: String = vec[1].parse::<String>().unwrap();
 
@@ -22,22 +23,22 @@ fn main() {
                 let mut new_dir: String = vec[2].parse::<String>().unwrap();
                 if new_dir == ".." {
                     current_dir_path.pop();
+                    continue;
+                } 
+                if new_dir == "/" {
+                    new_dir = HOME_FOLDER.to_string(); // Rename the "/" folder for readability
                 } else {
-                    if new_dir == "/" {
-                        new_dir = HOME_FOLDER.to_string();
-                    } else {
-                        new_dir = current_dir_path.last().unwrap().to_owned() + "/" + &new_dir;
-                    }
-                    current_dir_path.push(new_dir.clone());
-                    if !dir_sizes.contains_key(&new_dir) {
-                        dir_sizes.insert(new_dir.clone(), 0);
-                    }
+                    new_dir = current_dir_path.last().unwrap().to_owned() + "/" + &new_dir;
+                }
+                current_dir_path.push(new_dir.clone());
+                if !dir_sizes.contains_key(&new_dir) {
+                    dir_sizes.insert(new_dir.clone(), 0);
                 }
             },
             ("$", "ls") | ("dir", _) => (), // We don't care about when these commads are used
             _ => {
                 // Only remaining match arm is where a file size is listed
-                let file_size = command_1.parse::<i32>().unwrap();
+                let file_size: i32 = command_1.parse::<i32>().unwrap();
                 for i in 0..current_dir_path.len() {
                     dir_sizes.entry(current_dir_path[i].to_string()).and_modify(|size| *size += file_size);
                 }
