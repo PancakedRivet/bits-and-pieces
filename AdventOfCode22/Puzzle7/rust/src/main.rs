@@ -10,7 +10,7 @@ fn main() {
     let mut current_dir_path: Vec<String> = Vec::new();
     let mut dir_sizes: HashMap<String, i32> = HashMap::new();
 
-    static HOME_FOLDER: &str = "/home"; // Easier than just "/" in the path
+    const HOME_FOLDER: &str = "/home"; // Easier than just "/" in the path
 
     for line in contents.lines() {
         let line_split: SplitWhitespace = line.split_whitespace();
