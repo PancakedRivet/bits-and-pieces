@@ -2,9 +2,16 @@ use std::fs;
 
 // https://adventofcode.com/2022/day/8
 
+enum Direction {
+    Top,
+    Bottom,
+    Left,
+    Right
+}
+
 fn main() {
     // Open the input file
-    let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle8/input.txt";
+    let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle8/input2.txt";
     let contents: String = fs::read_to_string(file_path).expect("Should have been able to read the file");
     let rev_contents: String = contents.clone().chars().rev().collect();
 
@@ -19,7 +26,7 @@ fn main() {
     let mut tree_height_vec_top: Vec<i32> = top_boundary_trees(first_line);
     all_visible_trees_vec.push(vec![true; tree_height_vec_top.len()]);
 
-    // Get the first line as this is used to create the initial vector or tree heights as seen from the top
+    // Get the "last" line as this is used to create the initial vector or tree heights as seen from the bottom
     let rev_first_line = rev_file_lines.next().unwrap();
     let mut tree_height_vec_bottom: Vec<i32> = top_boundary_trees(rev_first_line);
     rev_all_visible_trees_vec.push(vec![true; tree_height_vec_bottom.len()]);
@@ -70,6 +77,89 @@ fn main() {
 
     println!("There are {:} visible trees in total", visibile_tree_count_total);
 
+    // Part 2: https://adventofcode.com/2022/day/8#part2
+
+    let mut all_trees_vec = Vec::<Vec<i32>>::new();
+    let mut rev_all_trees_vec = Vec::<Vec<i32>>::new();
+
+    for line in contents.lines() {
+        let line_split: Vec<&str> = line.split("").collect();
+        // filter out the empty string vec elements (artifact of the split("") call)
+        let line_split_not_empty = line_split.iter().filter(|x| !x.is_empty()).copied();
+        let line_split_values = line_split_not_empty.map(|x| x.parse::<i32>().unwrap()).collect();
+        all_trees_vec.push(line_split_values);
+    }
+
+    for line in rev_contents.lines() {
+        let line_split: Vec<&str> = line.split("").collect();
+        // filter out the empty string vec elements (artifact of the split("") call)
+        let line_split_not_empty = line_split.iter().filter(|x| !x.is_empty()).copied();
+        let line_split_values = line_split_not_empty.map(|x| x.parse::<i32>().unwrap()).collect();
+        rev_all_trees_vec.push(line_split_values);
+    }
+
+    // println!("{:?}", all_trees_vec);
+
+    let mut max_scenic_value: i32 = 0;
+
+    let max_i = all_trees_vec.len();
+    let max_j = all_trees_vec[0].len();
+
+    for i in 0..max_i {
+        for j in 0..max_j {
+
+            let rev_i = all_trees_vec.len() - i - 1;
+            let rev_j = all_trees_vec[0].len() - j - 1;
+
+            // Find vec of tree heights to the right of the value
+            let tree_counter_right: usize = calculate_scenic_score(&all_trees_vec, j, max_j, i, Direction::Right);
+            let tree_counter_bottom: usize = calculate_scenic_score(&all_trees_vec, i, max_i, j, Direction::Bottom);
+            let tree_counter_left: usize = calculate_scenic_score(&rev_all_trees_vec, rev_j, max_j, rev_i, Direction::Left);
+            let tree_counter_top: usize = calculate_scenic_score(&rev_all_trees_vec, rev_i, max_i, rev_j, Direction::Top);
+
+            let tree_scenic_value = tree_counter_right as i32 * tree_counter_bottom as i32 * tree_counter_left as i32 * tree_counter_top as i32;
+
+            // Indexing into the 2d vec looks backwards because the second index is the row index, not the column index (based on how it was pushed)
+            println!("Tree ({},{}): height={}, [r,b,t,l]=[{},{},{},{}], total={}", j, i, all_trees_vec[i][j], tree_counter_right, tree_counter_bottom, tree_counter_left, tree_counter_top, tree_scenic_value);
+
+            if tree_scenic_value > max_scenic_value {
+                max_scenic_value = tree_scenic_value;
+            }
+        }
+    }
+    println!("Scenic value maximum: {}", max_scenic_value);
+
+}
+
+fn calculate_scenic_score(all_trees_vec: &Vec<Vec<i32>>, counter: usize, max_counter: usize, fixed_dimension: usize, direction: Direction) -> usize {
+    
+    let starting_tree_height = match direction {
+        Direction::Top | Direction::Bottom => all_trees_vec[counter][fixed_dimension],
+        Direction::Left | Direction::Right => all_trees_vec[fixed_dimension][counter],
+    };
+    
+    // Find the number of shorter trees in one direction
+    let mut tree_counter: usize = 0;
+    if counter < max_counter {
+        for k in counter+1..max_counter {
+
+            let tree_height = match direction {
+                Direction::Top | Direction::Bottom => all_trees_vec[k][fixed_dimension],
+                Direction::Left | Direction::Right => all_trees_vec[fixed_dimension][k],
+            };
+
+            // println!("starting_tree_height={}, tree_height={}, counter={}, max_counter={}, k={}", starting_tree_height, tree_height, counter, max_counter, k);
+            if tree_height >= starting_tree_height {
+                tree_counter = k - counter;
+                // println!("BREAK starting_tree_height={}, tree_height={}, counter={}, max_counter={}, k={}", starting_tree_height, tree_height, counter, max_counter, k);
+                break;
+            }
+            if k == max_counter - 1 {
+                tree_counter = k - counter;
+            }
+        }
+    }
+    tree_counter
 }
 
 fn top_boundary_trees(first_line: &str) -> Vec<i32> {
