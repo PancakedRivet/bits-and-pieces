@@ -1,4 +1,5 @@
 use std::fs;
+use std::iter::zip;
 
 // https://adventofcode.com/2022/day/8
 
@@ -11,35 +12,12 @@ enum Direction {
 
 fn main() {
     // Open the input file
-    let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle8/input2.txt";
+    let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle8/input.txt";
     let contents: String = fs::read_to_string(file_path).expect("Should have been able to read the file");
     let rev_contents: String = contents.clone().chars().rev().collect();
 
-    let mut file_lines = contents.lines();
-    let mut rev_file_lines = rev_contents.lines();
-
-    let mut all_visible_trees_vec = Vec::<Vec<bool>>::new();
-    let mut rev_all_visible_trees_vec = Vec::<Vec<bool>>::new();
-
-    // Get the first line as this is used to create the initial vector or tree heights as seen from the top
-    let first_line = file_lines.next().unwrap();
-    let mut tree_height_vec_top: Vec<i32> = top_boundary_trees(first_line);
-    all_visible_trees_vec.push(vec![true; tree_height_vec_top.len()]);
-
-    // Get the "last" line as this is used to create the initial vector or tree heights as seen from the bottom
-    let rev_first_line = rev_file_lines.next().unwrap();
-    let mut tree_height_vec_bottom: Vec<i32> = top_boundary_trees(rev_first_line);
-    rev_all_visible_trees_vec.push(vec![true; tree_height_vec_bottom.len()]);
-
-    for line in file_lines {
-        let visibile_tree_vec = calculate_visible_trees(line, &mut tree_height_vec_top);
-        all_visible_trees_vec.push(visibile_tree_vec);
-    }
-
-    for line in rev_file_lines {
-        let visibile_tree_vec = calculate_visible_trees(line, &mut tree_height_vec_bottom);
-        rev_all_visible_trees_vec.push(visibile_tree_vec);
-    }
+    let mut all_visible_trees_vec = create_visible_tree_vec(&contents);
+    let rev_all_visible_trees_vec = create_visible_tree_vec(&rev_contents);
 
     println!("Dimensions: {:} x {:}", all_visible_trees_vec.len(), all_visible_trees_vec[0].len());
     
@@ -65,7 +43,6 @@ fn main() {
     }
 
     // println!("{:?}", all_visible_trees_vec);
-    // println!("{:?}", rev_all_visible_trees_vec);
 
     let mut visibile_tree_count_total: i32 = 0;
 
@@ -75,27 +52,22 @@ fn main() {
         visibile_tree_count_total += total_true as i32;
     }
 
-    println!("There are {:} visible trees in total", visibile_tree_count_total);
+    println!("Part 1: There are {:} visible trees in total", visibile_tree_count_total);
+
 
     // Part 2: https://adventofcode.com/2022/day/8#part2
 
     let mut all_trees_vec = Vec::<Vec<i32>>::new();
     let mut rev_all_trees_vec = Vec::<Vec<i32>>::new();
 
-    for line in contents.lines() {
-        let line_split: Vec<&str> = line.split("").collect();
-        // filter out the empty string vec elements (artifact of the split("") call)
-        let line_split_not_empty = line_split.iter().filter(|x| !x.is_empty()).copied();
-        let line_split_values = line_split_not_empty.map(|x| x.parse::<i32>().unwrap()).collect();
-        all_trees_vec.push(line_split_values);
-    }
+    let file_iter = zip(contents.lines(), rev_contents.lines());
 
-    for line in rev_contents.lines() {
-        let line_split: Vec<&str> = line.split("").collect();
-        // filter out the empty string vec elements (artifact of the split("") call)
-        let line_split_not_empty = line_split.iter().filter(|x| !x.is_empty()).copied();
-        let line_split_values = line_split_not_empty.map(|x| x.parse::<i32>().unwrap()).collect();
-        rev_all_trees_vec.push(line_split_values);
+    for (line, rev_line) in file_iter {
+        let line_vec = create_int_height_vec_from_str(line);
+        all_trees_vec.push(line_vec);
+
+        let rev_line_vec = create_int_height_vec_from_str(rev_line);
+        rev_all_trees_vec.push(rev_line_vec);
     }
 
     // println!("{:?}", all_trees_vec);
@@ -120,15 +92,42 @@ fn main() {
             let tree_scenic_value = tree_counter_right as i32 * tree_counter_bottom as i32 * tree_counter_left as i32 * tree_counter_top as i32;
 
             // Indexing into the 2d vec looks backwards because the second index is the row index, not the column index (based on how it was pushed)
-            println!("Tree ({},{}): height={}, [r,b,t,l]=[{},{},{},{}], total={}", j, i, all_trees_vec[i][j], tree_counter_right, tree_counter_bottom, tree_counter_left, tree_counter_top, tree_scenic_value);
+            // println!("Tree ({},{}): height={}, [r,b,t,l]=[{},{},{},{}], total={}", j, i, all_trees_vec[i][j], tree_counter_right, tree_counter_bottom, tree_counter_left, tree_counter_top, tree_scenic_value);
 
             if tree_scenic_value > max_scenic_value {
                 max_scenic_value = tree_scenic_value;
             }
         }
     }
-    println!("Scenic value maximum: {}", max_scenic_value);
+    println!("Part 2: Scenic value maximum: {}", max_scenic_value);
 
+}
+
+fn create_visible_tree_vec(contents: &String) -> Vec<Vec<bool>> {
+    let mut visible_trees_vec = Vec::<Vec<bool>>::new();
+
+    let mut file_lines = contents.lines();
+    
+    // Get the first line as this is used to create the initial vector or tree heights as seen from the top
+    let first_line = file_lines.next().unwrap();
+    let mut tree_height_vec_top: Vec<i32> = top_boundary_trees(first_line);
+    visible_trees_vec.push(vec![true; tree_height_vec_top.len()]);
+
+    for line in file_lines {
+        //.ok().unwrap().as_str()
+        let visibile_tree_vec = calculate_visible_trees(line, &mut tree_height_vec_top);
+        visible_trees_vec.push(visibile_tree_vec);
+    }
+
+    visible_trees_vec
+}
+
+fn create_int_height_vec_from_str(line: &str) -> Vec<i32> {
+    let line_split: Vec<&str> = line.split("").collect();
+    // filter out the empty string vec elements (artifact of the split("") call)
+    let line_split_not_empty = line_split.iter().filter(|x| !x.is_empty()).copied();
+    let line_split_values = line_split_not_empty.map(|x| x.parse::<i32>().unwrap()).collect();
+    line_split_values
 }
 
 fn calculate_scenic_score(all_trees_vec: &Vec<Vec<i32>>, counter: usize, max_counter: usize, fixed_dimension: usize, direction: Direction) -> usize {
