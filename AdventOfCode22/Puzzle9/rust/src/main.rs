@@ -39,8 +39,13 @@ fn main() {
 
     let mut visited_coords: HashMap<String, Coordinate> = HashMap::new();
 
-    let mut rope_head: Coordinate = Coordinate { x: 0, y: 0 };
-    let mut rope_tail: Coordinate = rope_head.clone();
+    let mut rope: Vec<Coordinate> = Vec::new();
+
+    const ROPE_PIECES: u8 = 2;
+
+    for _ in 0..ROPE_PIECES {
+        rope.push(Coordinate { x: 0, y: 0 });
+    }
 
     for line in contents.lines() {
         // println!("{}", line);
@@ -59,66 +64,18 @@ fn main() {
 
         for _ in 1..=amount {
             match direction {
-                Direction::Up => rope_head.y += 1,
-                Direction::Down => rope_head.y += -1,
-                Direction::Left => rope_head.x += -1,
-                Direction::Right => rope_head.x += 1,
+                Direction::Up => rope[0].y += 1,
+                Direction::Down => rope[0].y += -1,
+                Direction::Left => rope[0].x += -1,
+                Direction::Right => rope[0].x += 1,
             }
 
-            // Update the tail position if the distance is too great from the head
-            let x_diff = rope_head.x - rope_tail.x;
-            let y_diff = rope_head.y - rope_tail.y;
-            let should_move_tail = x_diff.abs() > 1 || y_diff.abs() > 1;
+            let prev_rope_piece = rope[0].clone();
 
-            if should_move_tail {
-                if rope_head.x - rope_tail.x == 0 || rope_head.y - rope_tail.y == 0 {
-                    // Move along the axis
-                    match direction {
-                        Direction::Up => rope_tail.y += 1,
-                        Direction::Down => rope_tail.y += -1,
-                        Direction::Left => rope_tail.x += -1,
-                        Direction::Right => rope_tail.x += 1,
-                    }
-                } else {
-                    match direction {
-                        Direction::Up => {
-                            match rope_head.x - rope_tail.x {
-                                d if d < 0 => rope_tail.x += -1,
-                                d if d > 0 => rope_tail.x += 1,
-                                _   => (),
-                            };
-                            rope_tail.y += 1;
-                        }
-                        Direction::Down => {
-                            match rope_head.x - rope_tail.x {
-                                d if d < 0 => rope_tail.x += -1,
-                                d if d > 0 => rope_tail.x += 1,
-                                _   => (),
-                            };
-                            rope_tail.y += -1;
-                        },
-                        Direction::Left => {
-                            match rope_head.y - rope_tail.y {
-                                d if d < 0 => rope_tail.y += -1,
-                                d if d > 0 => rope_tail.y += 1,
-                                _   => (),
-                            };
-                            rope_tail.x += -1;
-                        }
-                        Direction::Right => {
-                            match rope_head.y - rope_tail.y {
-                                d if d < 0 => rope_tail.y += -1,
-                                d if d > 0 => rope_tail.y += 1,
-                                _   => (),
-                            };
-                            rope_tail.x += 1;
-                        },
-                    }
-                }
-            }
+            move_rope_piece(&prev_rope_piece, &mut rope[1], &direction);
 
-            if !visited_coords.contains_key(&rope_tail.key()) {
-                visited_coords.insert(rope_tail.key().clone(), rope_tail.clone());
+            if !visited_coords.contains_key(&rope[1].key()) {
+                visited_coords.insert(rope[1].key(), rope[1].clone());
             }
 
             // println!("{}, {}", rope_head, rope_tail);
@@ -129,4 +86,60 @@ fn main() {
 
     // https://adventofcode.com/2022/day/9#part2
 
+}
+
+fn move_rope_piece(prev_rope_piece: &Coordinate, rope_piece: &mut Coordinate, direction: &Direction) {
+
+    // Update the rope piece position if the distance is too great from the previous rope piece
+    let x_diff = prev_rope_piece.x - rope_piece.x;
+    let y_diff = prev_rope_piece.y - rope_piece.y;
+    let should_move_tail = x_diff.abs() > 1 || y_diff.abs() > 1;
+
+    if should_move_tail {
+        if prev_rope_piece.x - rope_piece.x == 0 || prev_rope_piece.y - rope_piece.y == 0 {
+            // Move along the axis
+            match direction {
+                Direction::Up => rope_piece.y += 1,
+                Direction::Down => rope_piece.y += -1,
+                Direction::Left => rope_piece.x += -1,
+                Direction::Right => rope_piece.x += 1,
+            }
+        } else {
+            // Move diagonally
+            match direction {
+                Direction::Up => {
+                    match prev_rope_piece.x - rope_piece.x {
+                        d if d < 0 => rope_piece.x += -1,
+                        d if d > 0 => rope_piece.x += 1,
+                        _   => (),
+                    };
+                    rope_piece.y += 1;
+                }
+                Direction::Down => {
+                    match prev_rope_piece.x - rope_piece.x {
+                        d if d < 0 => rope_piece.x += -1,
+                        d if d > 0 => rope_piece.x += 1,
+                        _   => (),
+                    };
+                    rope_piece.y += -1;
+                },
+                Direction::Left => {
+                    match prev_rope_piece.y - rope_piece.y {
+                        d if d < 0 => rope_piece.y += -1,
+                        d if d > 0 => rope_piece.y += 1,
+                        _   => (),
+                    };
+                    rope_piece.x += -1;
+                }
+                Direction::Right => {
+                    match prev_rope_piece.y - rope_piece.y {
+                        d if d < 0 => rope_piece.y += -1,
+                        d if d > 0 => rope_piece.y += 1,
+                        _   => (),
+                    };
+                    rope_piece.x += 1;
+                },
+            }
+        }
+    }
 }
