@@ -106,39 +106,43 @@ fn move_rope_piece(prev_rope_piece: &Coordinate, rope_piece: &mut Coordinate, di
             }
         } else {
             // Move diagonally
-            match direction {
-                Direction::Up => {
-                    match prev_rope_piece.x - rope_piece.x {
-                        d if d < 0 => rope_piece.x += -1,
-                        d if d > 0 => rope_piece.x += 1,
-                        _   => (),
-                    };
+            match (direction, x_diff, y_diff) {
+                (Direction::Up, d, _) if d < 0 => {
+                    rope_piece.x += -1;
                     rope_piece.y += 1;
-                }
-                Direction::Down => {
-                    match prev_rope_piece.x - rope_piece.x {
-                        d if d < 0 => rope_piece.x += -1,
-                        d if d > 0 => rope_piece.x += 1,
-                        _   => (),
-                    };
+                },
+                (Direction::Up, d, _) if d > 0 => {
+                    rope_piece.x += 1;
+                    rope_piece.y += 1;
+                },
+
+                (Direction::Down, d, _) if d < 0 => {
+                    rope_piece.x += -1;
                     rope_piece.y += -1;
                 },
-                Direction::Left => {
-                    match prev_rope_piece.y - rope_piece.y {
-                        d if d < 0 => rope_piece.y += -1,
-                        d if d > 0 => rope_piece.y += 1,
-                        _   => (),
-                    };
+                (Direction::Down, d, _) if d > 0 => {
+                    rope_piece.x += 1;
+                    rope_piece.y += -1;
+                },
+
+                (Direction::Left, _, d) if d < 0 => {
+                    rope_piece.y += -1;
                     rope_piece.x += -1;
-                }
-                Direction::Right => {
-                    match prev_rope_piece.y - rope_piece.y {
-                        d if d < 0 => rope_piece.y += -1,
-                        d if d > 0 => rope_piece.y += 1,
-                        _   => (),
-                    };
+                },
+                (Direction::Left, _, d) if d > 0 => {
+                    rope_piece.y += 1;
+                    rope_piece.x += -1;
+                },
+
+                (Direction::Right, _, d) if d < 0 => {
+                    rope_piece.y += -1;
                     rope_piece.x += 1;
                 },
+                (Direction::Right, _, d) if d > 0 => {
+                    rope_piece.y += 1;
+                    rope_piece.x += 1;
+                },
+                (_,_,_) => ()
             }
         }
     }
