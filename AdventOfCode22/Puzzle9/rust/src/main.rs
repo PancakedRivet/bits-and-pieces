@@ -1,6 +1,6 @@
 use std::fs;
 use std::fmt;
-use std::collections::HashMap;
+use std::collections::HashSet;
 
 // https://adventofcode.com/2022/day/9
 
@@ -25,10 +25,11 @@ impl fmt::Display for Coordinate {
 fn main() {
 
     // Open the input file
-    let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle9/input.txt";
+    // let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle9/input.txt";
+    let file_path: &str = r"C:\SourceCode\bits-and-pieces\AdventOfCode22\Puzzle9\input.txt";
     let contents: String = fs::read_to_string(file_path).expect("Should have been able to read the file");
 
-    let mut visited_coords: HashMap<String, String> = HashMap::new();
+    let mut visited_coords: HashSet<String> = HashSet::new();
 
     let mut rope: Vec<Coordinate> = Vec::new();
 
@@ -92,8 +93,8 @@ fn main() {
             }
 
             // Check if the end of the rope is in a unique position and save it
-            if !visited_coords.contains_key(&rope[ROPE_PIECES-1].key()) {
-                visited_coords.insert(rope[ROPE_PIECES-1].key(), rope[ROPE_PIECES-1].key());
+            if !visited_coords.contains(&rope[ROPE_PIECES-1].key()) {
+                visited_coords.insert(rope[ROPE_PIECES-1].key());
             }
         }
 
