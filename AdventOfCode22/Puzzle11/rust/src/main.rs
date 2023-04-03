@@ -2,23 +2,25 @@ use std::collections::VecDeque;
 
 // https://adventofcode.com/2022/day/11
 
+type WorryScore = u64;
+
 struct Monkey {
-    items: VecDeque<i32>,
-    operation: Box<dyn Fn(i32) -> i32>,
-    test_divisor: i32,
+    items: VecDeque<WorryScore>,
+    operation: Box<dyn Fn(WorryScore) -> WorryScore>,
+    test_divisor: WorryScore,
     test_true: usize,
     test_false: usize,
-    inspection_count: i32,
+    inspection_count: WorryScore,
 }
 
 impl Monkey {
-    fn less_worried(worry: i32) -> i32 {
+    fn less_worried(worry: WorryScore) -> WorryScore {
          worry / 3
     }
-    fn operate_worry(self: &Self, worry: i32) -> i32 {
+    fn operate_worry(self: &Self, worry: WorryScore) -> WorryScore {
         (self.operation)(worry)
     }
-    fn test_worry(self: &Self, worry: i32) -> bool {
+    fn test_worry(self: &Self, worry: WorryScore) -> bool {
         (worry % self.test_divisor) == 0
     }
     fn increment_count(self: &mut Self) {
@@ -27,29 +29,16 @@ impl Monkey {
 }
 
 fn main() {
-    // Open the input file
-    // let file_path: &str = r"/Users/patrick/Code/bits-and-pieces/AdventOfCode22/Puzzle11/input2.txt";
-    // let contents: String = fs::read_to_string(file_path).expect("Should have been able to read the file");
-
-    const ROUNDS: i32 = 20;
-
+    const ROUNDS_PART1: u8 = 20;
     let mut monkeys: Vec<Monkey> = monkeys_input();
-    // println!("{}", &monkeys[0].items[0]);
-    // monkeys[0].less_worried(0);
-    // println!("{}", &monkeys[0].items[0]);
-    // monkeys[0].operate_worry(0);
-    // println!("{}", &monkeys[0].items[0]);
-    // let test = monkeys[0].test_worry(0);
-    // println!("{}", test);
 
-    // take_turn(&mut monkeys, 0);
-
+    println!("PART 1:");
     println!("START");
     for i in 0..monkeys.len() {
         println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
     }
 
-    for _ in 1..=ROUNDS {
+    for _ in 1..=ROUNDS_PART1 {
 
         // println!("Round {} Start", i);
 
@@ -59,7 +48,51 @@ fn main() {
 
             let item_count = monkeys[j].items.len();
             for _ in 0..item_count {
-                take_turn(&mut monkeys, j);
+                take_turn(&mut monkeys, j, 0);
+            }
+            
+            // println!("{:?}", monkeys[0].items);
+            // println!("{:?}", monkeys[1].items);
+            // println!("{:?}", monkeys[2].items);
+            // println!("{:?}", monkeys[3].items);
+            // println!("Monkey {} End", j);
+        }
+
+        // println!("Round {} End", i);
+
+    }
+
+    println!("END");
+    for i in 0..monkeys.len() {
+        println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
+    }
+
+    // Part 2: https://adventofcode.com/2022/day/11#part2
+
+    const ROUNDS_PART2: u32 = 10000;
+
+    let mut monkeys: Vec<Monkey> = monkeys_input();
+
+    // for part 2: modulo arithmetic means that we can multiply all of the divisor values together and use that as a modulo factor to keep worry scores manageable
+    let divisor_product = monkeys.iter().map(|m| m.test_divisor).product::<WorryScore>();
+
+    println!("PART 2:");
+    println!("START");
+    for i in 0..monkeys.len() {
+        println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
+    }
+
+    for _ in 1..=ROUNDS_PART2 {
+
+        // println!("Round {} Start", i);
+
+        for j in 0..monkeys.len() {
+
+            // println!("Monkey {} Start", j);
+
+            let item_count = monkeys[j].items.len();
+            for _ in 0..item_count {
+                take_turn(&mut monkeys, j, divisor_product);
             }
             
             // println!("{:?}", monkeys[0].items);
@@ -80,14 +113,16 @@ fn main() {
 
 }
 
-fn take_turn(monkeys: &mut Vec<Monkey>, monkey_index: usize) {
+fn take_turn(monkeys: &mut Vec<Monkey>, monkey_index: usize, divisor_product: WorryScore) {
     let monkey = &mut monkeys[monkey_index];
     let mut item_worry = monkey.items.pop_front().unwrap();
     monkey.increment_count();
     // inspection
     item_worry = monkey.operate_worry(item_worry);
-    // relief it's not damaged
-    item_worry = Monkey::less_worried(item_worry);
+    // part 1: relief it's not damaged
+    // item_worry = Monkey::less_worried(item_worry);
+    // part 2:finding another way to keep worry low
+    item_worry %= divisor_product;
     // test if it's divisble
     let item_test = monkey.test_worry(item_worry).clone();
     // choose the monkey to throw item to
