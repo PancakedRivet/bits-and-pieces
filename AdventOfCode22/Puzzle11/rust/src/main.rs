@@ -48,10 +48,10 @@ fn main() {
 
 fn do_rounds(rounds: u32, mut monkeys: Vec<Monkey>, worry_closure: Box<dyn Fn(WorryScore) -> WorryScore>) { //worry_closure: &Box<dyn Fn(WorryScore) -> WorryScore>
 
-    for _ in 1..=rounds {
-        for j in 0..monkeys.len() {
+    for _ in 1..=rounds { // number of rounds
+        for j in 0..monkeys.len() { // number of monkeys
             let item_count = monkeys[j].items.len();
-            for _ in 0..item_count {
+            for _ in 0..item_count { // number of items held by a given monkey
                 take_turn(&mut monkeys, j, &worry_closure);
             }
         }
