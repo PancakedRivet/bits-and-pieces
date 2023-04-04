@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 // https://adventofcode.com/2022/day/11
 
+// Decalring a type alias to changing the worry score data type easier
 type WorryScore = u64;
 
 struct Monkey {
@@ -14,9 +15,6 @@ struct Monkey {
 }
 
 impl Monkey {
-    fn less_worried(worry: WorryScore) -> WorryScore {
-         worry / 3
-    }
     fn operate_worry(self: &Self, worry: WorryScore) -> WorryScore {
         (self.operation)(worry)
     }
@@ -29,100 +27,64 @@ impl Monkey {
 }
 
 fn main() {
-    const ROUNDS_PART1: u8 = 20;
-    let mut monkeys: Vec<Monkey> = monkeys_input();
-
     println!("PART 1:");
-    println!("START");
-    for i in 0..monkeys.len() {
-        println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
-    }
-
-    for _ in 1..=ROUNDS_PART1 {
-
-        // println!("Round {} Start", i);
-
-        for j in 0..monkeys.len() {
-
-            // println!("Monkey {} Start", j);
-
-            let item_count = monkeys[j].items.len();
-            for _ in 0..item_count {
-                take_turn(&mut monkeys, j, 0);
-            }
-            
-            // println!("{:?}", monkeys[0].items);
-            // println!("{:?}", monkeys[1].items);
-            // println!("{:?}", monkeys[2].items);
-            // println!("{:?}", monkeys[3].items);
-            // println!("Monkey {} End", j);
-        }
-
-        // println!("Round {} End", i);
-
-    }
-
-    println!("END");
-    for i in 0..monkeys.len() {
-        println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
-    }
+    let rounds: u32 = 20;
+    let monkeys: Vec<Monkey> = monkeys_input();
+    let worry_closure = Box::new(|x| x / 3);
+    do_rounds(rounds, monkeys, worry_closure);
 
     // Part 2: https://adventofcode.com/2022/day/11#part2
 
-    const ROUNDS_PART2: u32 = 10000;
-
-    let mut monkeys: Vec<Monkey> = monkeys_input();
+    println!("\nPART 2:");
+    let rounds: u32 = 10000;
+    let monkeys: Vec<Monkey> = monkeys_input();
 
     // for part 2: modulo arithmetic means that we can multiply all of the divisor values together and use that as a modulo factor to keep worry scores manageable
-    let divisor_product = monkeys.iter().map(|m| m.test_divisor).product::<WorryScore>();
+    let divisor_product: WorryScore = monkeys.iter().map(|m| m.test_divisor).product::<WorryScore>();
+    let worry_closure = Box::new(move |x| x % divisor_product);
 
-    println!("PART 2:");
-    println!("START");
-    for i in 0..monkeys.len() {
-        println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
-    }
+    do_rounds(rounds, monkeys, worry_closure);
+}
 
-    for _ in 1..=ROUNDS_PART2 {
+fn do_rounds(rounds: u32, mut monkeys: Vec<Monkey>, worry_closure: Box<dyn Fn(WorryScore) -> WorryScore>) { //worry_closure: &Box<dyn Fn(WorryScore) -> WorryScore>
 
-        // println!("Round {} Start", i);
-
+    for _ in 1..=rounds {
         for j in 0..monkeys.len() {
-
-            // println!("Monkey {} Start", j);
-
             let item_count = monkeys[j].items.len();
             for _ in 0..item_count {
-                take_turn(&mut monkeys, j, divisor_product);
+                take_turn(&mut monkeys, j, &worry_closure);
             }
-            
-            // println!("{:?}", monkeys[0].items);
-            // println!("{:?}", monkeys[1].items);
-            // println!("{:?}", monkeys[2].items);
-            // println!("{:?}", monkeys[3].items);
-            // println!("Monkey {} End", j);
         }
-
-        // println!("Round {} End", i);
-
     }
 
-    println!("END");
-    for i in 0..monkeys.len() {
-        println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
+    // println!("END");
+    // for i in 0..monkeys.len() {
+    //     println!("Monkey{}: {:?}: Inspections: {}", i, monkeys[i].items, monkeys[i].inspection_count);
+    // }
+
+    // Calculate monkey business
+    let mut monkey_business_vec: Vec<WorryScore> = Vec::new();
+    for monkey in monkeys {
+        monkey_business_vec.push(monkey.inspection_count)
     }
+    monkey_business_vec.sort_by(|a, b| b.cmp(a));
+    let top_monkeys = &monkey_business_vec[0..2];
+    let monkey_business = top_monkeys.iter().map(|m| m).product::<WorryScore>();
+    println!("Monnkey Business = {}", monkey_business);
 
 }
 
-fn take_turn(monkeys: &mut Vec<Monkey>, monkey_index: usize, divisor_product: WorryScore) {
+fn take_turn(monkeys: &mut Vec<Monkey>, monkey_index: usize, worry_closure: &Box<dyn Fn(WorryScore) -> WorryScore>) {
     let monkey = &mut monkeys[monkey_index];
     let mut item_worry = monkey.items.pop_front().unwrap();
     monkey.increment_count();
     // inspection
     item_worry = monkey.operate_worry(item_worry);
+    
     // part 1: relief it's not damaged
-    // item_worry = Monkey::less_worried(item_worry);
-    // part 2:finding another way to keep worry low
-    item_worry %= divisor_product;
+    // part 2: finding another way to keep worry low
+    item_worry = (worry_closure)(item_worry);
+    
     // test if it's divisble
     let item_test = monkey.test_worry(item_worry).clone();
     // choose the monkey to throw item to
@@ -205,6 +167,7 @@ fn monkeys_input() -> Vec<Monkey> {
     monkeys
 }
 
+#[allow(dead_code)]
 fn monkeys_input2() -> Vec<Monkey> {
     let monkey0: Monkey = Monkey {
         items: VecDeque::from([79, 98]),
